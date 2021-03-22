@@ -1,0 +1,45 @@
+client
+site-enable/default
+conf.d/ 0
+
+server
+site-enable/mydefault
+conf.d/ 0
+
+
+ufw disable
+iptables prerouting
+
+
+----------
+--client--
+
+install metricbeat
+copy metricbeat config
+metricbeat modules enable kafka
+copy module config
+start metricbeat
+
+
+--server--
++install elastic
++copy config
++install kibana
++copy config
++install java
++install logstash
++install zookeeper
+install kafka
+?install metricbeat - config - module - config
+
+start server kafka
+sudo /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties &
+
+create topic
+sudo /opt/kafka/bin/kafka-topics.sh --create --zookeeper 10.0.55.16:2181 --replication-factor 1 --partitions 1 --topic apache
+
+start metricbeat
+start logstash
+
+check work
+sudo /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server 10.0.55.16:9092 --topic apache --from-beginning

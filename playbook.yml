@@ -36,8 +36,8 @@
     apt:
       pkg: ['prometheus', 'prometheus-node-exporter', 'prometheus-pushgateway', 'prometheus-alertmanager']
       state: latest
-    notify:
-    - restart prometheus
+#    notify:
+#    - restart prometheus
 
   - name: Copy prometheus config
     ansible.builtin.copy:
@@ -88,11 +88,17 @@
       remote_src: yes
   - name: Enable elasticsearch during boot
     service: name=elasticsearch state=started enabled=yes
+
+#logstash
+  - name: Install jre
+    apt: pkg=default-jre state=present
+  - name: Install Logstash
+    apt: pkg=logstash state=present
       
 #kibana      
   - name: Install Kibana
     apt: pkg=kibana state=present
-  - name: Copy elastic config
+  - name: Copy kibana config
     ansible.builtin.copy:
       src: /vagrant/kibana.yml
       dest: /etc/kibana/kibana.yml
@@ -100,7 +106,7 @@
   - name: Enable kibana during boot
     service: name=kibana state=started enabled=yes
 
-#metricbeat
+ #metricbeat
   - name: Install metricbeat
     apt: pkg=metricbeat state=present
     
@@ -109,10 +115,53 @@
       src: /vagrant/confSrv/metricbeat.yml
       dest: /etc/metricbeat/metricbeat.yml
       remote_src: yes
-  - name: Enable metricbeat during boot
+
+  - name: Copy metricbeat config
+    ansible.builtin.copy:
+      src: /vagrant/confSrv/metricbeat.yml
+      dest: /etc/metricbeat/metricbeat.yml
+      remote_src: yes
+  - name: enable module kafka
+    ansible.builtin.command: metricbeat modules enable kafka
+  - name: Copy module config
+    ansible.builtin.copy:
+      src: /vagrant/confSrv/kafka.yml
+      dest: /etc/metricbeat/modules.d/kafka.yml
+
+#zookeeper/kafka
+  - name: Install zookeeper
+    apt: pkg=zookeeper state=present
+
+  - name: Download and unarchive Kafkals 
+    ansible.builtin.unarchive:
+      src: https://apache-mirror.rbc.ru/pub/apache/kafka/2.7.0/kafka_2.13-2.7.0.tgz
+      dest: /home/vagrant/
+      remote_src: yes
+
+  - name: Move kafka
+    command: cp -r /home/vagrant/kafka_2.13-2.7.0 /opt/kafka    
+#  - name: Creates directory
+#    file:
+#      path: /opt/kafka
+#      state: directory
+ # - name: move files
+#    ansible.builtin.command: cp -r /home/vagrant/kafka_2.13-2.7.0 /opt/kafka
+    
+    
+  - name: run kafka srv
+    ansible.builtin.command: /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties &
+  - name: create topic
+    ansible.builtin.command: /opt/kafka/bin/kafka-topics.sh --create --zookeeper 10.0.55.16:2181 --replication-factor 1 --partitions 1 --topic apache
+
+  - name: Enable metricbeat
     service: name=metricbeat state=started enabled=yes
+  - name: Enable logstash
+    service: name=logstash state=started enabled=yes
 
-
+    
+    
+    
+    
 #Client tasks
 #install NodeExporter
 - hosts: client
@@ -121,7 +170,7 @@
   tasks:  
   - name: Install Prometheus
     apt: pkg=prometheus-node-exporter state=present
-#install elastic stack
+#install elastic repo
   - name: Add Elastic key
     apt_key:
       url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
@@ -134,11 +183,26 @@
       filename: elasticsearch
   - name: Install metricbeat
     apt: pkg=metricbeat state=present
-    
+#metricbeat    
   - name: Copy metricbeat config
     ansible.builtin.copy:
       src: /vagrant/confCli/metricbeat.yml
       dest: /etc/metricbeat/metricbeat.yml
       remote_src: yes
-  - name: Enable metricbeat during boot
+
+  - name: enable module kafka
+    ansible.builtin.command: metricbeat modules enable kafka
+  - name: Copy module config
+    ansible.builtin.copy:
+      src: /vagrant/confCli/kafka.yml
+      dest: /etc/metricbeat/modules.d/kafka.yml
+    notify: 
+    - run iptables
+
+  - name: start metricbeat
     service: name=metricbeat state=started enabled=yes
+
+#iptables     
+  handlers:
+  - name: run iptables
+    ansible.builtin.command: sh /vagrant/iptables_n.sh
