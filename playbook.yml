@@ -191,13 +191,10 @@
     ansible.builtin.copy:
       src: /vagrant/confCli/kafka.yml
       dest: /etc/metricbeat/modules.d/kafka.yml
-    notify: 
-    - run iptables
+
 
   - name: start metricbeat
     service: name=metricbeat state=started enabled=yes
 
-#iptables     
-  handlers:
   - name: run iptables
     ansible.builtin.command: sh /vagrant/iptables_n.sh

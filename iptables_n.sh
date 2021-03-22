@@ -16,11 +16,11 @@ iptables -P INPUT DROP
 iptables -P OUTPUT DROP
 iptables -P FORWARD DROP
 iptables -A INPUT -i lo -j ACCEPT
-#iptables -A INPUT -s $SRV_IP -j ACCEPT
+iptables -A INPUT -s $SRV_IP -j ACCEPT
 iptables -A OUTPUT -d $SRV_IP -j ACCEPT
-iptables -A INPUT -s $SRV_IP -p tcp --dport 22 -j ACCEPT
-iptables -A INPUT -s $SRV_IP -p tcp --dport 443 -j ACCEPT
-iptables -A INPUT -s $SRV_IP -p tcp --dport 80 -j ACCEPT
-iptables -A INPUT -s $SRV_IP -p tcp --dport 9090 -j ACCEPT
-iptables -A INPUT -s $SRV_IP -p tcp --dport 9100 -j ACCEPT
+#iptables -A INPUT -s $SRV_IP -p tcp --dport 22 -j ACCEPT
+#iptables -A INPUT -s $SRV_IP -p tcp --dport 443 -j ACCEPT
+#iptables -A INPUT -s $SRV_IP -p tcp --dport 80 -j ACCEPT
+#iptables -A INPUT -s $SRV_IP -p tcp --dport 9090 -j ACCEPT
+#iptables -A INPUT -s $SRV_IP -p tcp --dport 9100 -j ACCEPT
 #/sbin/iptables-save > /etc/sysconfig/iptables
