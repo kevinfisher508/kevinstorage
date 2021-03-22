@@ -1,0 +1,144 @@
+---
+- hosts: vms
+  gather_facts: yes
+  become: yes
+  tasks:
+  - name: Add nginx stable repository from PPA and install its signing key on Ubuntu target
+    ansible.builtin.apt_repository:
+      repo: ppa:nginx/stable
+    
+  - name: Install Nginx
+    apt: pkg=nginx state=present update_cache=yes
+    notify:
+    - restart nginx
+    
+  - name: Enable Nginx during boot
+    service: name=nginx state=started enabled=yes
+  handlers:
+    - name: restart nginx
+      service: name=nginx state=restarted
+    
+#server tasks      
+
+- hosts: server
+  gather_facts: yes
+  become: yes
+  tasks:  
+#add nginx config to proxy_pass    
+  - name: Copy nginx config
+    ansible.builtin.copy:
+      src: /vagrant/confSrv/default
+      dest: /etc/nginx/sites-enabled/default
+      remote_src: yes
+      
+#install prometheus      
+  - name: Install Prometheus
+    apt:
+      pkg: ['prometheus', 'prometheus-node-exporter', 'prometheus-pushgateway', 'prometheus-alertmanager']
+      state: latest
+    notify:
+    - restart prometheus
+
+  - name: Copy prometheus config
+    ansible.builtin.copy:
+      src: /vagrant/prometheus.yml
+      dest: /etc/prometheus/prometheus.yml
+      remote_src: yes
+
+  - name: Enable Prometheus during boot
+    service: name=prometheus state=started enabled=yes
+      
+#install grafana
+  - name: Add Grafana key
+    apt_key:
+      url: https://packages.grafana.com/gpg.key
+      state: present
+      
+  - name: Add Grafana repository
+    ansible.builtin.apt_repository:
+      repo: deb https://packages.grafana.com/oss/deb stable main
+      state: present
+      filename: grafana
+      
+    
+  - name: Install Grafana
+    apt: pkg=grafana state=present update_cache=yes
+  - name: Enable Grafana during boot
+    service: name=grafana-server state=started enabled=yes
+
+#install elastic stack
+  - name: Add Elastic key
+    apt_key:
+      url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      state: present    
+    
+  - name: Add Elastic repository
+    ansible.builtin.apt_repository:
+      repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+      state: present
+      filename: elasticsearch
+
+#elastic      
+  - name: Install Elasticsearch
+    apt: pkg=elasticsearch state=present update_cache=yes
+  - name: Copy elastic config
+    ansible.builtin.copy:
+      src: /vagrant/elasticsearch.yml
+      dest: /etc/elasticsearch/elasticsearch.yml
+      remote_src: yes
+  - name: Enable elasticsearch during boot
+    service: name=elasticsearch state=started enabled=yes
+      
+#kibana      
+  - name: Install Kibana
+    apt: pkg=kibana state=present
+  - name: Copy elastic config
+    ansible.builtin.copy:
+      src: /vagrant/kibana.yml
+      dest: /etc/kibana/kibana.yml
+      remote_src: yes
+  - name: Enable kibana during boot
+    service: name=kibana state=started enabled=yes
+
+#metricbeat
+  - name: Install metricbeat
+    apt: pkg=metricbeat state=present
+    
+  - name: Copy metricbeat config
+    ansible.builtin.copy:
+      src: /vagrant/confSrv/metricbeat.yml
+      dest: /etc/metricbeat/metricbeat.yml
+      remote_src: yes
+  - name: Enable metricbeat during boot
+    service: name=metricbeat state=started enabled=yes
+
+
+#Client tasks
+#install NodeExporter
+- hosts: client
+  gather_facts: yes
+  become: yes
+  tasks:  
+  - name: Install Prometheus
+    apt: pkg=prometheus-node-exporter state=present
+#install elastic stack
+  - name: Add Elastic key
+    apt_key:
+      url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      state: present    
+    
+  - name: Add Elastic repository
+    ansible.builtin.apt_repository:
+      repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+      state: present
+      filename: elasticsearch
+  - name: Install metricbeat
+    apt: pkg=metricbeat state=present
+    
+  - name: Copy metricbeat config
+    ansible.builtin.copy:
+      src: /vagrant/confCli/metricbeat.yml
+      dest: /etc/metricbeat/metricbeat.yml
+      remote_src: yes
+  - name: Enable metricbeat during boot
+    service: name=metricbeat state=started enabled=yes
