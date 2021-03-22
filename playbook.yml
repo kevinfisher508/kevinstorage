@@ -147,11 +147,6 @@
  # - name: move files
 #    ansible.builtin.command: cp -r /home/vagrant/kafka_2.13-2.7.0 /opt/kafka
     
-    
-  - name: run kafka srv
-    ansible.builtin.command: /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties &
-  - name: create topic
-    ansible.builtin.command: /opt/kafka/bin/kafka-topics.sh --create --zookeeper 10.0.55.16:2181 --replication-factor 1 --partitions 1 --topic apache
 
   - name: Enable metricbeat
     service: name=metricbeat state=started enabled=yes
