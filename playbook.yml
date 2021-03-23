@@ -132,14 +132,15 @@
   - name: Install zookeeper
     apt: pkg=zookeeper state=present
 
-  - name: Download and unarchive Kafkals 
-    ansible.builtin.unarchive:
-      src: https://apache-mirror.rbc.ru/pub/apache/kafka/2.7.0/kafka_2.13-2.7.0.tgz
-      dest: /home/vagrant/
-      remote_src: yes
+#  - name: Download and unarchive Kafkals 
+#    ansible.builtin.unarchive:
+#      src: https://apache-mirror.rbc.ru/pub/apache/kafka/2.7.0/kafka_2.13-2.7.0.tgz
+#      dest: /home/vagrant/
+#      remote_src: yes
 
-  - name: Move kafka
-    command: cp -r /home/vagrant/kafka_2.13-2.7.0 /opt/kafka    
+ # - name: Move kafka
+#    command: cp -r /home/vagrant/kafka_2.13-2.7.0 /opt/kafka    
+
 #  - name: Creates directory
 #    file:
 #      path: /opt/kafka
@@ -152,8 +153,10 @@
     service: name=metricbeat state=started enabled=yes
   - name: Enable logstash
     service: name=logstash state=started enabled=yes
-
-    
+#  - include_role:
+#      name: ansible-zookeeper
+  - include_role:
+      name: ansible-kafka
     
     
     
@@ -196,5 +199,5 @@
   - name: start metricbeat
     service: name=metricbeat state=started enabled=yes
 
-  - name: run iptables
-    ansible.builtin.command: sh /vagrant/iptables_n.sh
+#  - name: run iptables
+#    ansible.builtin.command: sh /vagrant/iptables_n.sh

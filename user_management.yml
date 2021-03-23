@@ -12,17 +12,26 @@
       private: no
 
   tasks:
-    - name: Add the user 'username'
-      ansible.builtin.user:
-        name: "{{ username }}"
-        comment: "{{ fullname }}"
-        password: $6$q2msgVmAEInazl$bXS/EPgIyFmcb.Y457B/ccNL136K8E99muSJm.12kfEeCXJSGaRiDtYv1BE9WyZY6D/bYhfTrUN7HPZUOYV9R0
-        generate_ssh_key: yes
-        ssh_key_bits: 2048
-        ssh_key_file: .ssh/id_rsa
+  - name: Make sure we have a 'testadmin' group
+    group:
+      name: testadmin
+      state: present
 
-        
+  - name: Allow 'testadmin' group to have passwordless sudo
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^%testadmin'
+      line: '%testadmin ALL=(ALL) /usr/sbin/tcpdump'
+      validate: 'visudo -cf %s'
+    
+  - name: Add the user 'username'
+    ansible.builtin.user:
+      name: "{{ username }}"
+      comment: "{{ fullname }}"
+      password: $6$q2msgVmAEInazl$bXS/EPgIyFmcb.Y457B/ccNL136K8E99muSJm.12kfEeCXJSGaRiDtYv1BE9WyZY6D/bYhfTrUN7HPZUOYV9R0
+      group: testadmin
+      generate_ssh_key: yes
+      ssh_key_bits: 2048
+      ssh_key_file: .ssh/id_rsa
 
-#    - name: Print a message
-#      ansible.builtin.debug:
-#        msg: 'Logging in as {{ username }}'

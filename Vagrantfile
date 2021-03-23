@@ -34,7 +34,7 @@ Vagrant.configure("2") do |config|
 
 	server.vm.provider "virtualbox" do |server|
 	  server.cpus = 4
-	  server.memory = 8192
+	  server.memory = 6140
 	end
   end
 

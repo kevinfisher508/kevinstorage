@@ -2,7 +2,7 @@
 
 
 printf "nameserver 8.8.8.8\noptions edns0" > /etc/resolv.conf
-printf "127.0.0.1       localhost\n127.0.1.1       vagrant.vm      vagrant\n10.0.55.14		client			client\n127.0.0.1		server			server" > /etc/hosts
+printf "127.0.0.1       localhost\n127.0.1.1       vagrant.vm      vagrant\n10.0.55.14		client			client\n10.0.55.16		server			server" > /etc/hosts
 sudo ssh-keyscan -H 10.0.55.14 >> ~/.ssh/known_hosts
 
 
