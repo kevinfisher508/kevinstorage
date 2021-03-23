@@ -94,7 +94,10 @@
     apt: pkg=default-jre state=present
   - name: Install Logstash
     apt: pkg=logstash state=present
-      
+  - name: Copy logstash module config
+    ansible.builtin.copy:
+      src: /vagrant/apache.conf
+      dest: /etc/logstash/conf.d/apache.conf
 #kibana      
   - name: Install Kibana
     apt: pkg=kibana state=present
@@ -199,5 +202,24 @@
   - name: start metricbeat
     service: name=metricbeat state=started enabled=yes
 
-#  - name: run iptables
-#    ansible.builtin.command: sh /vagrant/iptables_n.sh
+  - iptables:
+      chain: INPUT
+      source: 10.0.55.16
+      jump: ACCEPT
+    become: yes
+    
+  - iptables:
+      chain: OUTPUT
+      destination: 10.0.55.16
+      jump: ACCEPT
+    become: yes
+
+  - iptables:
+      chain: INPUT
+      policy: DROP
+    become: yes
+
+  - iptables:
+      chain: OUTPUT
+      policy: DROP
+    become: yes
