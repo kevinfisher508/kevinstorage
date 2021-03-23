@@ -7,7 +7,7 @@
   #  - partition
   #  - consumergroup
   period: 10s
-  hosts: ["10.0.45.16:9092"]
+  hosts: ["10.0.55.16:9092"]
 
   #client_id: metricbeat
   #retries: 3

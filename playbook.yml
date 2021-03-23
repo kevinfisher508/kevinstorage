@@ -133,8 +133,13 @@
 
 #zookeeper/kafka
   - name: Install zookeeper
-    apt: pkg=zookeeper state=present
-
+    apt: 
+      pkg: zookeeper
+      state: present
+  - name: zookeeperd service
+    command: apt install -y zookeeperd
+  - name: Enable zookeeper
+    service: name=zookeeper state=started enabled=yes   
 #  - name: Download and unarchive Kafkals 
 #    ansible.builtin.unarchive:
 #      src: https://apache-mirror.rbc.ru/pub/apache/kafka/2.7.0/kafka_2.13-2.7.0.tgz
@@ -152,8 +157,7 @@
 #    ansible.builtin.command: cp -r /home/vagrant/kafka_2.13-2.7.0 /opt/kafka
     
 
-  - name: Enable metricbeat
-    service: name=metricbeat state=started enabled=yes
+
   - name: Enable logstash
     service: name=logstash state=started enabled=yes
 #  - include_role:
@@ -162,19 +166,20 @@
       name: ansible-kafka
 
 #iptables server
-  - iptables:
-      table: nat
-      chain: PREROUTING
-      in_interface: eth2
-      protocol: tcp
-      match: tcp
-      destination_port: 9200
-      jump: REDIRECT
-      to_destination: 10.0.55.16
-      to_ports: 9200
-      comment: Redirect wan traffic to local
-    become: yes
-    
+#  - iptables:
+#      table: nat
+#      chain: PREROUTING
+#      in_interface: eth2
+#      protocol: tcp
+#      match: tcp
+#      destination_port: 9200
+#      jump: REDIRECT
+#      to_destination: 10.0.55.16
+#      to_ports: 9200
+#      comment: Redirect wan traffic to local
+#    become: yes
+  - name: Enable metricbeat
+    service: name=metricbeat state=started enabled=yes
     
     
 #Client tasks
