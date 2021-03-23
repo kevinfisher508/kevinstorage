@@ -207,13 +207,23 @@
       source: 10.0.55.16
       jump: ACCEPT
     become: yes
+  - iptables:
+      chain: INPUT
+      in_interface: lo
+      jump: ACCEPT
+    become: yes    
     
   - iptables:
       chain: OUTPUT
       destination: 10.0.55.16
       jump: ACCEPT
     become: yes
-
+  - iptables:
+      chain: OUTPUT
+      out_interface: lo
+      jump: ACCEPT
+    become: yes
+    
   - iptables:
       chain: INPUT
       policy: DROP
