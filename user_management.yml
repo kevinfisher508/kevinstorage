@@ -25,7 +25,7 @@
       line: '%testadmin ALL=(ALL) /usr/sbin/tcpdump'
       validate: 'visudo -cf %s'
     
-  - name: Add the user 'username'
+  - name: Add the user "{{ username }}"
     ansible.builtin.user:
       name: "{{ username }}"
       comment: "{{ fullname }}"

@@ -1,0 +1,18 @@
+---
+- hosts: server
+  become: yes
+#iptables server
+  tasks:
+  - iptables:
+      table: nat
+      chain: PREROUTING
+      in_interface: eth2
+      protocol: tcp
+      match: tcp
+ #     destination_port: 5601
+      jump: DNAT
+      to_destination: 10.0.55.16:5601
+#      to_ports: 5601
+      comment: Redirect wan traffic to local
+    become: yes
+

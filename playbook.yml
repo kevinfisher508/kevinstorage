@@ -98,6 +98,8 @@
     ansible.builtin.copy:
       src: /vagrant/apache.conf
       dest: /etc/logstash/conf.d/apache.conf
+  - name: Enable logstash
+    service: name=logstash state=stopped enabled=yes
 #kibana      
   - name: Install Kibana
     apt: pkg=kibana state=present
@@ -106,7 +108,7 @@
       src: /vagrant/kibana.yml
       dest: /etc/kibana/kibana.yml
       remote_src: yes
-  - name: Enable kibana during boot
+  - name: Enable kibana
     service: name=kibana state=started enabled=yes
 
  #metricbeat
@@ -140,55 +142,46 @@
     command: apt install -y zookeeperd
   - name: Enable zookeeper
     service: name=zookeeper state=started enabled=yes   
-#  - name: Download and unarchive Kafkals 
-#    ansible.builtin.unarchive:
-#      src: https://apache-mirror.rbc.ru/pub/apache/kafka/2.7.0/kafka_2.13-2.7.0.tgz
-#      dest: /home/vagrant/
-#      remote_src: yes
-
- # - name: Move kafka
-#    command: cp -r /home/vagrant/kafka_2.13-2.7.0 /opt/kafka    
-
-#  - name: Creates directory
-#    file:
-#      path: /opt/kafka
-#      state: directory
- # - name: move files
-#    ansible.builtin.command: cp -r /home/vagrant/kafka_2.13-2.7.0 /opt/kafka
-    
 
 
   - name: Enable logstash
     service: name=logstash state=started enabled=yes
-#  - include_role:
-#      name: ansible-zookeeper
+
   - include_role:
       name: ansible-kafka
 
-#iptables server
-#  - iptables:
-#      table: nat
-#      chain: PREROUTING
-#      in_interface: eth2
-#      protocol: tcp
-#      match: tcp
-#      destination_port: 9200
-#      jump: REDIRECT
-#      to_destination: 10.0.55.16
-#      to_ports: 9200
-#      comment: Redirect wan traffic to local
-#    become: yes
+
+
+  - name: stop kafka
+    service: name=kafka state=restarted enabled=yes
+ 
+  - name: Sleep for 20 seconds and continue with play
+    wait_for:
+      timeout: 20
+    delegate_to: localhost  
+    
   - name: Enable metricbeat
-    service: name=metricbeat state=started enabled=yes
+    service: name=metricbeat state=restarted enabled=yes
     
-    
+ #iptables
+  - iptables:
+      table: nat
+      chain: PREROUTING
+      in_interface: eth2
+      protocol: tcp
+      match: tcp
+      jump: DNAT
+      to_destination: 10.0.55.16:5601
+      comment: Redirect wan traffic to local
+    become: yes
+   
 #Client tasks
 #install NodeExporter
 - hosts: client
   gather_facts: yes
   become: yes
   tasks:  
-  - name: Install Prometheus
+  - name: Install NodeExporter
     apt: pkg=prometheus-node-exporter state=present
 #install elastic repo
   - name: Add Elastic key
@@ -218,7 +211,7 @@
       dest: /etc/metricbeat/modules.d/kafka.yml
 
   - name: start metricbeat
-    service: name=metricbeat state=started enabled=yes
+    service: name=metricbeat state=restarted enabled=yes
 
 #iptables client
   - iptables:
