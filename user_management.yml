@@ -17,7 +17,7 @@
       name: testadmin
       state: present
 
-  - name: Allow 'testadmin' group to have passwordless sudo
+  - name: Allow 'testadmin' group to have tcpdump access
     lineinfile:
       dest: /etc/sudoers
       state: present
@@ -35,3 +35,5 @@
       ssh_key_bits: 2048
       ssh_key_file: .ssh/id_rsa
 
+  - name: Expiring password for user "{{ username }}"
+    shell: chage -d 0 "{{ username }}"
